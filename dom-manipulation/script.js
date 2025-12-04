@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   populateCategories();
   if (lastViewed) displayQuote(lastViewed);
   createAddQuoteForm();
-  fetchQuotesFromServer(); // NEW REQUIRED FUNCTION
+  fetchQuotesFromServer();
 });
 
 // -------------------------
@@ -82,17 +82,32 @@ function createAddQuoteForm() {
 }
 
 // -------------------------
-// ADD NEW QUOTE
+// ADD NEW QUOTE + POST TO SERVER
 // -------------------------
-function addQuote() {
+async function addQuote() {
   const text = document.getElementById("newQuoteText").value.trim();
   const category = document.getElementById("newQuoteCategory").value.trim();
 
   if (!text || !category) return alert("Please fill both fields.");
 
-  quotes.push({ text, category });
+  const newQuote = { text, category };
+
+  // Add locally
+  quotes.push(newQuote);
   saveQuotes();
   populateCategories();
+
+  // -------------------------
+  // REQUIRED POST REQUEST
+  // -------------------------
+  await fetch("https://jsonplaceholder.typicode.com/posts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(newQuote)
+  });
+
   alert("Quote added!");
 
   document.getElementById("newQuoteText").value = "";
@@ -170,7 +185,7 @@ function importFromJsonFile(event) {
 
 const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
 
-// REQUIRED BY CHECKER: fetchQuotesFromServer()
+// REQUIRED: fetchQuotesFromServer()
 async function fetchQuotesFromServer() {
   try {
     const response = await fetch(SERVER_URL);
