@@ -16,6 +16,7 @@ let lastViewed = sessionStorage.getItem("lastViewedQuote");
 document.addEventListener("DOMContentLoaded", () => {
   populateCategories();
   if (lastViewed) displayQuote(lastViewed);
+  createAddQuoteForm(); // required by task
 });
 
 // -------------------------
@@ -50,6 +51,33 @@ function showRandomQuote() {
 
   const randomQuote = filtered[Math.floor(Math.random() * filtered.length)];
   displayQuote(randomQuote.text);
+}
+
+// -------------------------
+// REQUIRED BY TASK: createAddQuoteForm()
+// -------------------------
+function createAddQuoteForm() {
+  const container = document.createElement("div");
+
+  const inputText = document.createElement("input");
+  inputText.type = "text";
+  inputText.id = "newQuoteText";
+  inputText.placeholder = "Enter quote";
+
+  const inputCategory = document.createElement("input");
+  inputCategory.type = "text";
+  inputCategory.id = "newQuoteCategory";
+  inputCategory.placeholder = "Enter category";
+
+  const btn = document.createElement("button");
+  btn.textContent = "Add Quote";
+  btn.onclick = addQuote;
+
+  container.appendChild(inputText);
+  container.appendChild(inputCategory);
+  container.appendChild(btn);
+
+  document.body.appendChild(container);
 }
 
 // -------------------------
@@ -139,10 +167,8 @@ function importFromJsonFile(event) {
 // TASK 3: SIMULATED SERVER SYNC
 // -------------------------
 
-// Fake server endpoint (JSONPlaceholder style)
 const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
 
-// Periodically fetch server data every 20 seconds
 setInterval(syncWithServer, 20000);
 
 async function syncWithServer() {
@@ -150,18 +176,16 @@ async function syncWithServer() {
     const response = await fetch(SERVER_URL);
     const serverData = await response.json();
 
-    // Simulated server quotes (random 3 items)
     const serverQuotes = serverData.slice(0, 3).map(p => ({
       text: p.title,
       category: "Server"
     }));
 
-    // CONFLICT RESOLUTION → SERVER WINS
     quotes = [...serverQuotes, ...quotes];
     saveQuotes();
     populateCategories();
 
-    alert("Server sync completed. Conflicts resolved using server data.");
+    alert("Server sync completed. Conflicts resolved.");
   } catch (err) {
     console.log("Sync error:", err);
   }
