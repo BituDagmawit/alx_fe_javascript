@@ -1,7 +1,5 @@
 let quotes = [];
 let lastViewed = null;
-
-// ===== MOCK SERVER URL =====
 const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
 
 // ========== FETCH FROM SERVER ==========
@@ -9,8 +7,6 @@ async function fetchQuotesFromServer() {
   try {
     const res = await fetch(SERVER_URL);
     const data = await res.json();
-
-    // Convert mock posts → quotes
     return data.slice(0, 10).map(item => ({
       text: item.title,
       category: "Server",
@@ -29,7 +25,6 @@ async function syncQuotes() {
 
   let updated = false;
 
-  // Conflict resolution:
   serverQuotes.forEach(sq => {
     if (!localQuotes.some(lq => lq.id === sq.id)) {
       localQuotes.push(sq);
@@ -39,46 +34,39 @@ async function syncQuotes() {
 
   if (updated) {
     localStorage.setItem("quotes", JSON.stringify(localQuotes));
-    showUpdateNotification();
+    showUpdateNotification(); // show UI notification
   }
 
   quotes = localQuotes;
 }
 
-// ========== UPDATE NOTIFICATION ==========
+// ========== UI NOTIFICATION ==========
 function showUpdateNotification() {
   const box = document.createElement("div");
-  box.textContent = "New quotes synced from server!";
+  box.textContent = "Quotes synced with server!";
   box.style.position = "fixed";
   box.style.top = "10px";
   box.style.right = "10px";
   box.style.background = "#4caf50";
-  box.style.color = "white";
-  box.style.padding = "10px";
+  box.style.color = "#fff";
+  box.style.padding = "10px 15px";
   box.style.borderRadius = "5px";
+  box.style.boxShadow = "0 2px 5px rgba(0,0,0,0.3)";
   document.body.appendChild(box);
 
   setTimeout(() => box.remove(), 3000);
 }
 
-// ========== ADD QUOTE LOCALLY & POST TO MOCK SERVER ==========
+// ========== ADD QUOTE LOCALLY & POST TO SERVER ==========
 async function addQuote() {
-  const text = document.getElementById("newQuoteText").value;
-  const category = document.getElementById("newQuoteCategory").value;
+  const text = document.getElementById("newQuoteText").value.trim();
+  const category = document.getElementById("newQuoteCategory").value.trim();
+  if (!text || !category) return alert("Please fill both fields.");
 
-  if (!text || !category) return;
-
-  const newQuote = {
-    id: Date.now(),
-    text,
-    category
-  };
-
-  // Save locally
+  const newQuote = { id: Date.now(), text, category };
   quotes.push(newQuote);
   localStorage.setItem("quotes", JSON.stringify(quotes));
 
-  // POST to mock server
   await fetch(SERVER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -86,32 +74,33 @@ async function addQuote() {
   });
 
   alert("Quote added!");
+  document.getElementById("newQuoteText").value = "";
+  document.getElementById("newQuoteCategory").value = "";
 }
 
-// ========== UI FORM CREATOR ==========
+// ========== CREATE ADD QUOTE FORM ==========
 function createAddQuoteForm() {
   const container = document.createElement("div");
 
-  const input1 = document.createElement("input");
-  input1.id = "newQuoteText";
-  input1.placeholder = "Enter quote";
+  const inputText = document.createElement("input");
+  inputText.id = "newQuoteText";
+  inputText.placeholder = "Enter quote";
 
-  const input2 = document.createElement("input");
-  input2.id = "newQuoteCategory";
-  input2.placeholder = "Enter category";
+  const inputCategory = document.createElement("input");
+  inputCategory.id = "newQuoteCategory";
+  inputCategory.placeholder = "Enter category";
 
   const btn = document.createElement("button");
   btn.textContent = "Add Quote";
   btn.onclick = addQuote;
 
-  container.appendChild(input1);
-  container.appendChild(input2);
+  container.appendChild(inputText);
+  container.appendChild(inputCategory);
   container.appendChild(btn);
-
   document.body.appendChild(container);
 }
 
-// ========== DISPLAY & CATEGORY FUNCTIONS ==========
+// ========== DISPLAY & CATEGORY ==========
 function displayQuote(q) {
   document.getElementById("quoteDisplay").textContent = q.text;
 }
@@ -119,8 +108,8 @@ function displayQuote(q) {
 function populateCategories() {
   const categories = [...new Set(quotes.map(q => q.category))];
   const list = document.getElementById("categoryList");
+  if (!list) return;
   list.innerHTML = "";
-
   categories.forEach(cat => {
     const btn = document.createElement("button");
     btn.textContent = cat;
@@ -133,7 +122,7 @@ function populateCategories() {
 }
 
 // ========== PERIODIC SERVER CHECK ==========
-setInterval(syncQuotes, 15000); // every 15 seconds
+setInterval(syncQuotes, 15000); // every 15s
 
 // ========== ON LOAD ==========
 document.addEventListener("DOMContentLoaded", async () => {
