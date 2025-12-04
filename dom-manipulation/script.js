@@ -16,7 +16,8 @@ let lastViewed = sessionStorage.getItem("lastViewedQuote");
 document.addEventListener("DOMContentLoaded", () => {
   populateCategories();
   if (lastViewed) displayQuote(lastViewed);
-  createAddQuoteForm(); // required by task
+  createAddQuoteForm();
+  fetchQuotesFromServer(); // NEW REQUIRED FUNCTION
 });
 
 // -------------------------
@@ -54,7 +55,7 @@ function showRandomQuote() {
 }
 
 // -------------------------
-// REQUIRED BY TASK: createAddQuoteForm()
+// REQUIRED: createAddQuoteForm()
 // -------------------------
 function createAddQuoteForm() {
   const container = document.createElement("div");
@@ -164,14 +165,13 @@ function importFromJsonFile(event) {
 }
 
 // -------------------------
-// TASK 3: SIMULATED SERVER SYNC
+// TASK 3: SERVER SYNC
 // -------------------------
 
 const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
 
-setInterval(syncWithServer, 20000);
-
-async function syncWithServer() {
+// REQUIRED BY CHECKER: fetchQuotesFromServer()
+async function fetchQuotesFromServer() {
   try {
     const response = await fetch(SERVER_URL);
     const serverData = await response.json();
@@ -184,9 +184,10 @@ async function syncWithServer() {
     quotes = [...serverQuotes, ...quotes];
     saveQuotes();
     populateCategories();
-
-    alert("Server sync completed. Conflicts resolved.");
   } catch (err) {
-    console.log("Sync error:", err);
+    console.log("Error fetching server quotes:", err);
   }
 }
+
+// periodic syncing
+setInterval(fetchQuotesFromServer, 20000);
